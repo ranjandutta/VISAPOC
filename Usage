@@ -1,0 +1,27 @@
+Create the keyspace and CF needed for this test program:
+
+CREATE KEYSPACE visa WITH replication = { 'class': 'SimpleStrategy', 'replication_factor': '1' };
+
+USE visa;
+
+CREATE TABLE testtable ( id int, created int, currency text, last_update int, points int, userid text, uuid text, version int, PRIMARY KEY ((id)) )
+CREATE TABLE testtable1 ( id int, created int, currency text, last_update int, points int, userid text, uuid text, version int, PRIMARY KEY ((id,userid)) )
+
+Invoke Driver.java with the following Program arguments servername writes #partitions #clustercolsperpartition #batchsize #startpartition" 127.0.0.1 writes 100000 1 1 1 ( this inserts 1m rows to a C* instance running on 127.0.0.1).
+
+The logic to generate data is in Db2Dao.getVisaOffers(). - YOu may have to use your text file and construct the List Collection Object.
+
+The visaDaoModified.visaInsertData will then insert the data generated in the previous step into the C* Column Family.
+
+    PreparedStatement ps = session
+            .prepare("INSERT INTO test.testtable "
+                    + "(id, uuid,version,created,last_update,currency,userid,points) "
+                    + "VALUES (?,?,?,?,?,?,?,?);");
+        .....// Use execute Async to load the data and bind the variables.
+        results.add(session.executeAsync(
+                ps.bind(visa.getId(), visa.getUuid(), visa.getVersion(),
+                        visa.getCreated(), visa.getLast_update(),
+                        visa.getCurrency(), visa.getUserid(), visa.getPoints())));   
+This is a Maven project and the pom.xml has the right dependencies. Kindly change the version of the Datastax Driver to ( I had 2.0.0)
+
+com.datastax.cassandra cassandra-driver-core 2.1.0
